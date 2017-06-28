@@ -847,7 +847,7 @@ class Expression(object):
     >>> bool(Expression('1 != 1').eval())
     False
     """
-    operators = [ '==', '!=', '>=', '<=', '&&', '||', '&', '|', '-', '+', '>', '<' ]
+    operators = [ '==', '!=', '>=', '<=', '&&', '||', '&', '|', '-', '+', '>', '<', '/', '*' ]
     def __init__(self, expr_str, name_filter = None):
         self._code = expr_str
         left, self._op, right = self._partition(expr_str)
@@ -899,6 +899,10 @@ class Expression(object):
             return left - right
         elif self._op == '+':
             return left + right
+        elif self._op == '/':
+            return left / right
+        elif self._op == '*':
+            return left * right
         elif self._op == '!':
             return not left
         else:
