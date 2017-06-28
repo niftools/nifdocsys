@@ -301,6 +301,7 @@ class CFile(file):
         lastver1 = None
         lastver2 = None
         lastuserver = None
+        lastuserver2 = None
         lastcond = None
         lastvercond = None
         # stream name
@@ -446,10 +447,10 @@ class CFile(file):
             y_cond = y.cond.code(y_cond_prefix)
             y_vercond = y.vercond.code('info.')
             if action in [ACTION_READ, ACTION_WRITE, ACTION_FIXLINKS]:
-                if lastver1 != y.ver1 or lastver2 != y.ver2 or lastuserver != y.userver or lastvercond != y_vercond:
+                if lastver1 != y.ver1 or lastver2 != y.ver2 or lastuserver != y.userver or lastuserver2 != y.userver2 or lastvercond != y_vercond:
                     # we must switch to a new version block    
                     # close old version block
-                    if lastver1 or lastver2 or lastuserver or lastvercond: self.code("};")
+                    if lastver1 or lastver2 or lastuserver or lastuserver2 or lastvercond: self.code("};")
                     # close old condition block as well    
                     if lastcond:
                         self.code("};")
@@ -466,6 +467,9 @@ class CFile(file):
                         concat = " && "
                     if y.userver != None:
                         verexpr = "%s%s( info.userVersion == %s )"%(verexpr, concat, y.userver)
+                        concat = " && "
+                    if y.userver2 != None:
+                        verexpr = "%s%s( info.userVersion2 == %s )"%(verexpr, concat, y.userver2)
                         concat = " && "
                     if y_vercond:
                         verexpr = "%s%s( %s )"%(verexpr, concat, y_vercond)
@@ -627,11 +631,12 @@ class CFile(file):
             lastver1 = y.ver1
             lastver2 = y.ver2
             lastuserver = y.userver
+            lastuserver2 = y.userver2
             lastcond = y_cond
             lastvercond = y_vercond
 
         if action in [ACTION_READ, ACTION_WRITE, ACTION_FIXLINKS]:
-            if lastver1 or lastver2 or not(lastuserver is None) or lastvercond:
+            if lastver1 or lastver2 or not(lastuserver is None) or not(lastuserver2 is None) or lastvercond:
                 self.code("};")
         if action in [ACTION_READ, ACTION_WRITE, ACTION_FIXLINKS, ACTION_OUT]:
             if lastcond:
@@ -1195,6 +1200,8 @@ class Member:
     @type ver2: string
     @ivar userver: The user version where this member exists.  Comes from the "userver" attribute of the <add> tag.
     @type userver: string
+    @ivar userver2: The user version 2 where this member exists.  Comes from the "userver2" attribute of the <add> tag.
+    @type userver2: string
     @ivar vercond: The version condition of this member variable.  Comes from the "vercond" attribute of the <add> tag.
     @type vercond: Eval    
     @ivar is_public: Whether this member will be declared public.  Comes from the "public" attribute of the <add> tag.
@@ -1264,6 +1271,7 @@ class Member:
         self.ver1      = version2number(element.getAttribute('ver1'))
         self.ver2      = version2number(element.getAttribute('ver2'))
         self.userver   = userversion2number(element.getAttribute('userver'))
+        self.userver2  = userversion2number(element.getAttribute('userver2'))
         self.vercond   = Expr(element.getAttribute('vercond'))
         self.is_public = (element.getAttribute('public') == "1")  
         self.next_dup  = None
