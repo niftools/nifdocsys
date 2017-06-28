@@ -1250,6 +1250,7 @@ class Member:
         
         # member attributes
         self.name      = element.getAttribute('name')
+        self.suffix    = element.getAttribute('suffix')
         self.type      = element.getAttribute('type')
         self.arg       = element.getAttribute('arg')
         self.template  = element.getAttribute('template')
@@ -1326,7 +1327,7 @@ class Member:
         while sis:
             if sis.nodeType == Node.ELEMENT_NODE:
                 sis_name = sis.getAttribute('name')
-                if sis_name == self.name:
+                if sis_name == self.name and not self.suffix:
                     self.is_duplicate = True
                 sis_arr1 = Expr(sis.getAttribute('arr1'))
                 sis_arr2 = Expr(sis.getAttribute('arr2'))
@@ -1354,7 +1355,7 @@ class Member:
             sis = sis.nextSibling
 
         # C++ names
-        self.cname     = member_name(self.name)
+        self.cname     = member_name(self.name if not self.suffix else self.name + "_" + self.suffix)
         self.ctype     = class_name(self.type)
         self.carg      = member_name(self.arg)
         self.ctemplate = class_name(self.template)
@@ -1501,6 +1502,7 @@ class Enum(Basic):
       Basic.__init__(self, element)
       
       self.storage = element.getAttribute('storage')
+      self.prefix  = element.getAttribute('prefix')
       #find the Niflib type of the storage
       self.storage = basic_types[self.storage].niflibtype
       self.description = element.firstChild.nodeValue.strip()
@@ -1510,6 +1512,8 @@ class Enum(Basic):
       
       # Locate all special enumeration options
       for option in element.getElementsByTagName('option'):
+          if self.prefix and option.hasAttribute('name'):
+              option.setAttribute('name', self.prefix + "_" + option.getAttribute('name'))
           x = Option(option)
           self.options.append(x)
 

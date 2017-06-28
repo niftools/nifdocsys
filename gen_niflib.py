@@ -546,7 +546,7 @@ if GENALLFILES:
     out.code()
     for n in block_names:
         x = block_types[n]
-        out.code( 'ObjectRegistry::RegisterObject( "' + x.cname + '", ' + x.cname + '::Create );' )
+        out.code( 'ObjectRegistry::RegisterObject( "' + x.name + '", ' + x.cname + '::Create );' )
     out.code()
     out.code( '}' )
     out.code( '}' )
@@ -736,9 +736,9 @@ for n in block_names:
     out.code()
     out.code( '//Definition of TYPE constant' )
     if x.inherit:
-        out.code ( 'const Type ' + x.cname + '::TYPE(\"' + x.cname + '\", &' + x.inherit.cname + '::TYPE );' )
+        out.code ( 'const Type ' + x.cname + '::TYPE(\"' + x.name + '\", &' + x.inherit.cname + '::TYPE );' )
     else:
-        out.code ( 'const Type ' + x.cname + '::TYPE(\"' + x.cname + '\", &RefObject::TYPE );' )
+        out.code ( 'const Type ' + x.cname + '::TYPE(\"' + x.name + '\", &RefObject::TYPE );' )
     out.code()
     x_code_construct = x.code_construct()
     if x_code_construct:
