@@ -674,7 +674,7 @@ def class_name(n):
     try:
         return native_types[n]
     except KeyError:
-        return n.replace(' ', '_')
+        return n.replace(' ', '_').replace(":", "_")
 
     if n == None: return None
     try:
@@ -1170,7 +1170,7 @@ class Option:
             self.description = element.firstChild.nodeValue.strip()
         else:
             self.description = self.name
-        self.cname = self.name.upper().replace(" ", "_").replace("-", "_").replace("/", "_").replace("=", "_")
+        self.cname = self.name.upper().replace(" ", "_").replace("-", "_").replace("/", "_").replace("=", "_").replace(":", "_")
 
 class Member:
     """
