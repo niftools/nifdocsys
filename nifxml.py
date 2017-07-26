@@ -568,7 +568,10 @@ class CFile(file):
                                 self.code("};")
                             # the usual thing
                             elif not y.arg:
-                                self.code("NifStream( %s, %s, info );"%(z, stream))
+                                cast = ""
+                                if ( y.is_duplicate ):
+                                    cast = "(%s&)" % y.ctype
+                                self.code("NifStream( %s%s, %s, info );"%(cast, z, stream))
                             else:
                                 self.code("NifStream( %s, %s, info, %s%s );"%(z, stream, y_prefix, y.carg))
                     else:
