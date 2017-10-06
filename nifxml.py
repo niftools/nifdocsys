@@ -554,7 +554,7 @@ class CFile(file):
                 if action in [ACTION_READ, ACTION_WRITE, ACTION_FIXLINKS, ACTION_GETREFS, ACTION_GETPTRS]:
                     if (not subblock.is_link) and (not subblock.is_crossref):
                         # not a ref
-                        if action in [ACTION_READ, ACTION_WRITE]:
+                        if action in [ACTION_READ, ACTION_WRITE] and y.is_abstract is False:
                             # hack required for vector<bool>
                             if y.type == "bool" and y.arr1.lhs:
                                 self.code("{");
@@ -1213,6 +1213,8 @@ class Member:
     @type vercond: Eval    
     @ivar is_public: Whether this member will be declared public.  Comes from the "public" attribute of the <add> tag.
     @type is_public: string
+    @ivar is_abstract: Whether this member is abstract.  This means that it does not factor into read/write.
+    @type is_abstract: bool
     @ivar description: The description of this member variable.  Comes from the text between <add> and </add>.
     @type description: string
     @ivar uses_argument: Specifies whether this attribute uses an argument.
@@ -1280,7 +1282,8 @@ class Member:
         self.userver   = userversion2number(element.getAttribute('userver'))
         self.userver2  = userversion2number(element.getAttribute('userver2'))
         self.vercond   = Expr(element.getAttribute('vercond'))
-        self.is_public = (element.getAttribute('public') == "1")  
+        self.is_public = (element.getAttribute('public') == "1")
+        self.is_abstract = (element.getAttribute('abstract') == "1")
         self.next_dup  = None
         self.is_manual_update = False
         self.is_calculated = (element.getAttribute('calculated') == "1")
