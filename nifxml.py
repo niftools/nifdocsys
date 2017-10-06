@@ -320,7 +320,8 @@ class CFile(file):
                 self.code("stringstream out;")
                 # declare array_output_count, only if it will actually be used
                 for y in block.members:
-                    if y.arr1.lhs or (y.ctype in ["BoundingVolume", "ByteArray", "KeyGroup"]):
+                    if y.arr1.lhs or (y.ctype in ["BoundingVolume", "ByteArray", "KeyGroup",
+                    "ConstraintData", "MalleableDescriptor","PrismaticDescriptor"]):
                         self.code("unsigned int array_output_count = 0;")
                         break
             if action == ACTION_GETREFS:
