@@ -364,11 +364,9 @@ class CFile(file):
             if action == ACTION_OUT:
                 self.code("stringstream out;")
                 # declare array_output_count, only if it will actually be used
-                for y in block.members:
-                    if y.arr1.lhs or (y.ctype in ["BoundingVolume", "ByteArray", "KeyGroup",
-                    "ConstraintData", "MalleableDescriptor","PrismaticDescriptor"]):
-                        self.code("unsigned int array_output_count = 0;")
-                        break
+                if block.has_arr():
+                    self.code("unsigned int array_output_count = 0;")
+
             if action == ACTION_GETREFS:
                 self.code("list<Ref<NiObject> > refs;")
             if action == ACTION_GETPTRS:
@@ -1766,7 +1764,13 @@ class Compound(Basic):
         elif y.arr2 and y.arr2.lhs == name:
           return y
       return None
-      
+    
+    # Tests recursively for members with an array size.
+    def has_arr(self):
+        for y in self.members:
+            if y.arr1.lhs or (y.type in compound_types and compound_types[y.type].has_arr()):
+                return True
+        return False
 
 class Block(Compound):
     def __init__(self, element):
