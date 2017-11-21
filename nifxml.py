@@ -114,6 +114,51 @@ flag_names = []
 block_names = []
 version_names = []
 
+NATIVETYPES = {
+    'bool' : 'bool',
+    'byte' : 'byte',
+    'uint' : 'unsigned int',
+    'ulittle32' : 'unsigned int',
+    'ushort' : 'unsigned short',
+    'int' : 'int',
+    'short' : 'short',
+    'BlockTypeIndex' : 'unsigned short',
+    'char' : 'byte',
+    'FileVersion' : 'unsigned int',
+    'Flags' : 'unsigned short',
+    'float' : 'float',
+    'hfloat' : 'hfloat',
+    'HeaderString' : 'HeaderString',
+    'LineString' : 'LineString',
+    'Ptr' : '*',
+    'Ref' : 'Ref',
+    'StringOffset' : 'unsigned int',
+    'StringIndex' : 'IndexString',
+    'SizedString' : 'string',
+    'string' : 'IndexString',
+    'Color3' : 'Color3',
+    'Color4' : 'Color4',
+    #'ByteColor3' : 'ByteColor3', # TODO: Niflib type
+    'ByteColor4' : 'ByteColor4',
+    'FilePath' : 'IndexString',
+    'Vector3' : 'Vector3',
+    'Vector4' : 'Vector4',
+    'Quaternion' : 'Quaternion',
+    'Matrix22' : 'Matrix22',
+    'Matrix33' : 'Matrix33',
+    'Matrix34' : 'Matrix34',
+    'Matrix44' : 'Matrix44',
+    'hkMatrix3' : 'InertiaMatrix',
+    'ShortString' : 'ShortString',
+    'Key' : 'Key',
+    'QuatKey' : 'Key',
+    'TexCoord' : 'TexCoord',
+    'Triangle' : 'Triangle',
+    'BSVertexData' : 'BSVertexData',
+    'BSVertexDataSSE' : 'BSVertexData',
+    'BSVertexDesc' : 'BSVertexDesc'
+}
+
 ACTION_READ = 0
 ACTION_WRITE = 1
 ACTION_OUT = 2
@@ -1491,7 +1536,7 @@ class Basic:
         self.name = element.getAttribute('name')
         assert(self.name) # debug
         self.cname = class_name(self.name)
-        self.niflibtype = element.getAttribute('niflibtype')
+        self.niflibtype = NATIVETYPES.get(self.name)
         if element.firstChild and element.firstChild.nodeType == Node.TEXT_NODE:
             self.description = element.firstChild.nodeValue.strip()
         else:

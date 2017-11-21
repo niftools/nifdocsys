@@ -232,8 +232,7 @@ for n in compound_names:
     x = compound_types[n]
     
     # skip natively implemented types
-    if x.niflibtype: continue
-    if n[:3] == 'ns ': continue
+    if x.name in NATIVETYPES.keys(): continue
     
     if not GENALLFILES and not x.cname in GENBLOCKS:
             continue
