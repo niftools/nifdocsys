@@ -161,7 +161,7 @@ NATIVETYPES = {
     'Triangle' : 'Triangle',
     'BSVertexData' : 'BSVertexData',
     'BSVertexDataSSE' : 'BSVertexData',
-    'BSVertexDesc' : 'BSVertexDesc'
+    #'BSVertexDesc' : 'BSVertexDesc'
 }
 
 ACTION_READ = 0
@@ -765,6 +765,8 @@ def member_name(n):
             else:
                 n2 += c.upper()
                 lower = True
+        elif c == '\\': # arg member access operator
+            n2 += '.'
         else:
             n2 += '_'
             lower = True
