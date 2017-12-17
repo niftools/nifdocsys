@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # TODO: split in multiple files
 
 """
@@ -86,11 +88,14 @@ POSSIBILITY OF SUCH DAMAGE.
 @type ACTION_GETPTRS: C{int}
 """
 
+from __future__ import unicode_literals
+
 from xml.dom.minidom import *
 from textwrap import fill
 
 import sys
 import os
+import io
 import re
 import types
 
@@ -185,13 +190,13 @@ class Template:
 
     def parse(self, file_name):
         #Open file and read contents to txt variable
-        f = file(file_name, 'r')
+        f = io.open(file_name, 'rt', 1, 'utf-8')
         txt = f.read()
         f.close()
 
         #Loop through all variables, replacing them in the template text
         for i in self.vars:
-            txt = txt.replace( "{" + i + "}", str(self.vars[i]) )
+            txt = txt.replace( '{' + i + '}', self.vars[i].encode('utf-8').decode('utf-8', 'strict') )
 
         #return result
         return txt
@@ -200,7 +205,7 @@ class Template:
 # C++ code formatting functions
 #
 
-class CFile(file):
+class CFile(io.TextIOWrapper):
     """
     This class represents a C++ source file.  It is used to open the file for output
     and automatically handles indentation by detecting brackets and colons.
@@ -210,15 +215,8 @@ class CFile(file):
     @ivar backslash_mode: Determines whether a backslash is appended to each line for creation of multi-line defines
     @type backslash_mode: bool
     """
-    def __init__(self, filename, mode):
-        """
-        This constructor requires the name of the file to open and the IO mode to open it in.
-        @param filename: The name of the ouput file to open
-        @type filename: string
-        @param mode: The IO Mode.  Same as fopen?  Usually should be 'r', 'w', or 'a'
-        @type mode: char
-        """
-        file.__init__(self, filename, mode)
+    def __init__(self, buffer, encoding='utf-8', errors=None, newline=None, line_buffering=False, write_through=False):
+        io.TextIOWrapper.__init__(self, buffer, encoding, errors, newline, line_buffering)
         self.indent = 0
         self.backslash_mode = False
     
@@ -259,8 +257,8 @@ class CFile(file):
         if txt[-1:] == "{": self.indent += 1
         # special, private:, public:, and protected:
         if txt[-1:] == ":": self.indent += 1
-    
-        self.write(result)
+        
+        self.write(result.encode('utf-8').decode('utf-8', 'strict'))
     
     
     # 
@@ -593,7 +591,7 @@ class CFile(file):
                             %(self.indent, self.indent, y.arr2.code(y_arr2_prefix), self.indent-1, self.indent))
                     z = "%s%s[i%i][i%i]"%(y_prefix, y.cname, self.indent-2, self.indent-1)
     
-            if native_types.has_key(y.type):
+            if y.type in native_types:
                 # these actions distinguish between refs and non-refs
                 if action in [ACTION_READ, ACTION_WRITE, ACTION_FIXLINKS, ACTION_GETREFS, ACTION_GETPTRS]:
                     if (not subblock.is_link) and (not subblock.is_crossref):
@@ -624,23 +622,7 @@ class CFile(file):
                             self.code("NifStream( block_num, %s, info );"%stream)
                             self.code("link_stack.push_back( block_num );")
                         elif action == ACTION_WRITE:
-                            self.code("if ( info.version < VER_3_3_0_13 ) {")
-                            self.code("WritePtr32( &(*%s), %s );"%(z, stream))
-                            self.code("} else {")  
-                            self.code("if ( %s != NULL ) {"%z)
-                            self.code("map<NiObjectRef,unsigned int>::const_iterator it = link_map.find( StaticCast<NiObject>(%s) );" % z)
-                            self.code("if (it != link_map.end()) {")
-                            self.code("NifStream( it->second, %s, info );"%stream)
-                            self.code("missing_link_stack.push_back( NULL );")
-                            self.code("} else {")
-                            self.code("NifStream( 0xFFFFFFFF, %s, info );"%stream)
-                            self.code("missing_link_stack.push_back( %s );" %z)
-                            self.code("}")
-                            self.code("} else {")
-                            self.code("NifStream( 0xFFFFFFFF, %s, info );"%stream)
-                            self.code("missing_link_stack.push_back( NULL );")
-                            self.code("}")
-                            self.code("}")
+                            self.code("WriteRef( StaticCast<NiObject>(%s), %s, info, link_map, missing_link_stack );" % (z, stream))
                         elif action == ACTION_FIXLINKS:
                             self.code("%s = FixLink<%s>( objects, link_stack, missing_link_stack, info );"%(z,y.ctemplate))
                                 
@@ -850,7 +832,7 @@ def scanBrackets(expr_str, fromIndex = 0):
     startpos = -1
     endpos = -1
     scandepth = 0
-    for scanpos in xrange(fromIndex, len(expr_str)):
+    for scanpos in range(fromIndex, len(expr_str)):
         scanchar = expr_str[scanpos]
         if scanchar == "(":
             if startpos == -1:
@@ -912,7 +894,7 @@ class Expression(object):
         elif isinstance(self._left, basestring):
             left = getattr(data, self._left) if self._left != '""' else ""
         else:
-            assert(isinstance(self._left, (int, long))) # debug
+            assert(isinstance(self._left, int)) # debug
             left = self._left
 
         if not self._op:
@@ -923,7 +905,7 @@ class Expression(object):
         elif isinstance(self._right, basestring):
             right = getattr(data, self._right) if self._right != '""' else ""
         else:
-            assert(isinstance(self._right, (int, long))) # debug
+            assert(isinstance(self._right, int)) # debug
             right = self._right
 
         if self._op == '==':
@@ -962,6 +944,13 @@ class Expression(object):
         if not self._op: return left
         right = str(self._right)
         return left + ' ' + self._op + ' ' + right
+
+    def encode(self, encoding):
+        """
+        To allow encode() to be called on an Expression directly as if it were a string
+        (For Python 2/3 cross-compatibility.)
+        """
+        return self.__str__().encode(encoding)
 
     @classmethod
     def _parse(cls, expr_str, name_filter = None):
@@ -1029,7 +1018,7 @@ class Expression(object):
                 # to avoid confusion between && and &, and || and |,
                 # let's first scan for operators of two characters
                 # and then for operators of one character
-                for op_endpos in xrange(op_startpos+1, op_startpos-1, -1):
+                for op_endpos in range(op_startpos+1, op_startpos-1, -1):
                     op_str = expr_str[op_startpos:op_endpos+1]
                     if op_str in cls.operators:
                         break
@@ -1045,7 +1034,7 @@ class Expression(object):
                     raise ValueError("expression syntax error: expected operator before '%s'"%expr_str[op_startpos:])
                 # to avoid confusion between && and &, and || and |,
                 # let's first scan for operators of two characters
-                for op_endpos in xrange(op_startpos+1, op_startpos-1, -1):
+                for op_endpos in range(op_startpos+1, op_startpos-1, -1):
                     op_str = expr_str[op_startpos:op_endpos+1]
                     if op_str in cls.operators:
                         break
@@ -1081,7 +1070,7 @@ class Expression(object):
         startpos = -1
         endpos = -1
         scandepth = 0
-        for scanpos in xrange(fromIndex, len(expr_str)):
+        for scanpos in range(fromIndex, len(expr_str)):
             scanchar = expr_str[scanpos]
             if scanchar == "(":
                 if startpos == -1:
@@ -1110,7 +1099,7 @@ class Expression(object):
         rbracket = ")" if brackets else ""
         if not self._op:
             if not self.lhs: return ''
-            if isinstance(self.lhs, types.IntType):
+            if isinstance(self.lhs, int):
                 return self.lhs               
             elif self.lhs in block_types:
                 return 'IsDerivedType(%s::TYPE)' % self.lhs
@@ -1336,8 +1325,10 @@ class Member:
         if element.firstChild:
             assert element.firstChild.nodeType == Node.TEXT_NODE
             self.description = element.firstChild.nodeValue.strip()
-        else:
+        elif self.name.lower().find("unk") == 0:
             self.description = "Unknown."
+        else:
+            self.description = ""
         
         # Format default value so that it can be used in a C++ initializer list
         if not self.default and (not self.arr1.lhs and not self.arr2.lhs):
@@ -1379,7 +1370,7 @@ class Member:
         
         # calculate other stuff
         self.uses_argument = (self.cond.lhs == '(ARG)' or self.arr1.lhs == '(ARG)' or self.arr2.lhs == '(ARG)')
-        self.type_is_native = native_types.has_key(self.name) # true if the type is implemented natively
+        self.type_is_native = self.name in native_types # true if the type is implemented natively
 
         # calculate stuff from reference to previous members
         # true if this is a duplicate of a previously declared member
@@ -1537,8 +1528,10 @@ class Basic:
         self.niflibtype = NATIVETYPES.get(self.name)
         if element.firstChild and element.firstChild.nodeType == Node.TEXT_NODE:
             self.description = element.firstChild.nodeValue.strip()
-        else:
+        elif self.name.lower().find("unk") == 0:
             self.description = "Unknown."
+        else:
+            self.description = ""
 
         self.count = element.getAttribute('count')
 
@@ -1847,30 +1840,30 @@ for element in doc.getElementsByTagName('version'):
 
 for element in doc.getElementsByTagName('basic'):
     x = Basic(element)
-    assert not basic_types.has_key(x.name)
+    assert not x.name in basic_types
     basic_types[x.name] = x
     basic_names.append(x.name)
 
 for element in doc.getElementsByTagName('enum'):
     x = Enum(element)
-    assert not enum_types.has_key(x.name)
+    assert not x.name in enum_types
     enum_types[x.name] = x
     enum_names.append(x.name)
 
 for element in doc.getElementsByTagName('bitflags'):
     x = Flag(element)
-    assert not flag_types.has_key(x.name)
+    assert not x.name in flag_types
     flag_types[x.name] = x
     flag_names.append(x.name)
     
 for element in doc.getElementsByTagName("compound"):
     x = Compound(element)
-    assert not compound_types.has_key(x.name)
+    assert not x.name in compound_types
     compound_types[x.name] = x
     compound_names.append(x.name)
 
 for element in doc.getElementsByTagName("niobject"):
     x = Block(element)
-    assert not block_types.has_key(x.name)
+    assert not x.name in block_types
     block_types[x.name] = x
     block_names.append(x.name)

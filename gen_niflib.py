@@ -56,9 +56,11 @@
 # ***** END LICENSE BLOCK *****
 # --------------------------------------------------------------------------
 
+from __future__ import unicode_literals
 from nifxml import *
 from distutils.dir_util import mkpath
 import os
+import io
 import hashlib
 import itertools
 
@@ -129,7 +131,7 @@ def ExtractCustomCode( file_name ):
         custom_lines['DESTRUCTOR'].append( "\n" )
         return custom_lines
     
-    f = file( file_name, 'r' )
+    f = io.open(file_name, 'rt', 1, 'utf-8')
     lines = f.readlines()
     f.close()
    
@@ -241,7 +243,7 @@ for n in compound_names:
     file_name = ROOT_DIR + '/include/gen/' + x.cname + '.h'
     custom_lines = ExtractCustomCode( file_name );
 
-    h = CFile(file_name, 'w')  
+    h = CFile(io.open(file_name, 'wb'))
     h.code( '/* Copyright (c) 2006, NIF File Format Library and Tools' )
     h.code( 'All rights reserved.  Please see niflib.h for license. */' )
     h.code()
@@ -313,7 +315,7 @@ for n in compound_names:
         file_name = ROOT_DIR + '/src/gen/' + x.cname + '.cpp'
         custom_lines = ExtractCustomCode( file_name );
 
-        cpp = CFile(file_name, 'w')
+        cpp = CFile(io.open(file_name, 'wb'))
         cpp.code( '/* Copyright (c) 2006, NIF File Format Library and Tools' )
         cpp.code( 'All rights reserved.  Please see niflib.h for license. */' )
         cpp.code()
@@ -410,7 +412,7 @@ for n in compound_names:
 
     # Write out Public Enumeration header Enumerations
 if GENALLFILES:
-    out = CFile(ROOT_DIR + '/include/gen/enums.h', 'w')
+    out = CFile(io.open(ROOT_DIR + '/include/gen/enums.h', 'wb'))
     out.code( '/* Copyright (c) 2006, NIF File Format Library and Tools' )
     out.code( 'All rights reserved.  Please see niflib.h for license. */' )
     out.code('#ifndef _NIF_ENUMS_H_')
@@ -425,7 +427,7 @@ if GENALLFILES:
     out.code()
     out.write('namespace Niflib {\n')
     out.code()
-    for n, x in itertools.chain(enum_types.iteritems(), flag_types.iteritems()):
+    for n, x in itertools.chain(enum_types.items(), flag_types.items()):
       if x.options:
         if x.description:
           out.comment(x.description)
@@ -443,7 +445,7 @@ if GENALLFILES:
 
     # Write out Internal Enumeration header (NifStream functions)
 if GENALLFILES:
-    out = CFile(ROOT_DIR + '/include/gen/enums_intl.h', 'w')
+    out = CFile(io.open(ROOT_DIR + '/include/gen/enums_intl.h', 'wb'))
     out.code( '/* Copyright (c) 2006, NIF File Format Library and Tools' )
     out.code( 'All rights reserved.  Please see niflib.h for license. */' )
     out.code()
@@ -461,7 +463,7 @@ if GENALLFILES:
     out.code()
     out.write('namespace Niflib {\n')
     out.code()
-    for n, x in itertools.chain(enum_types.iteritems(), flag_types.iteritems()):
+    for n, x in itertools.chain(enum_types.items(), flag_types.items()):
       if x.options:
         if x.description:
             out.code()
@@ -477,7 +479,7 @@ if GENALLFILES:
 
     #Write out Enumeration Implementation
 if GENALLFILES:
-    out = CFile(ROOT_DIR + '/src/gen/enums.cpp', 'w')
+    out = CFile(io.open(ROOT_DIR + '/src/gen/enums.cpp', 'wb'))
     out.code( '/* Copyright (c) 2006, NIF File Format Library and Tools' )
     out.code( 'All rights reserved.  Please see niflib.h for license. */' )
     out.code()
@@ -497,7 +499,7 @@ if GENALLFILES:
     out.code()
 
     out.code()
-    for n, x in itertools.chain(enum_types.iteritems(), flag_types.iteritems()):
+    for n, x in itertools.chain(enum_types.items(), flag_types.items()):
       if x.options:
         out.code()
         out.code('//--' + x.cname + '--//')
@@ -527,7 +529,7 @@ if GENALLFILES:
     #
     # NiObject Registration Function
     #
-    out = CFile(ROOT_DIR + '/src/gen/register.cpp', 'w')
+    out = CFile(io.open(ROOT_DIR + '/src/gen/register.cpp', 'wb'))
     out.code( '/* Copyright (c) 2006, NIF File Format Library and Tools' )
     out.code( 'All rights reserved.  Please see niflib.h for license. */' )
     out.code()
@@ -571,7 +573,7 @@ for n in block_names:
     custom_lines = ExtractCustomCode( file_name );
 
     #output new file
-    out = CFile(file_name, 'w')
+    out = CFile(io.open(file_name, 'wb'))
     out.code( '/* Copyright (c) 2006, NIF File Format Library and Tools' )
     out.code( 'All rights reserved.  Please see niflib.h for license. */' )
     out.code()
@@ -708,8 +710,8 @@ for n in block_names:
     #Get existing custom code
     file_name = ROOT_DIR + '/src/obj/' + x.cname + '.cpp'
     custom_lines = ExtractCustomCode( file_name );
-        
-    out = CFile( file_name, 'w')
+    
+    out = CFile(io.open(file_name, 'wb'))
     out.code( '/* Copyright (c) 2006, NIF File Format Library and Tools' )
     out.code( 'All rights reserved.  Please see niflib.h for license. */' )
     out.code()

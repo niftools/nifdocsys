@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # nifxml_doc.py
 #
 # This script generates HTML documentation from the XML file.
@@ -46,9 +48,11 @@
 # ***** END LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+from __future__ import unicode_literals
 from nifxml import *
 from distutils.dir_util import mkpath
 import os
+import io
 import itertools
 
 #
@@ -76,7 +80,7 @@ flag_names.sort()
 
 def tohex(value, nbytes=4):
     """Improved version of hex."""
-    return ("0x%%0%dX" % (2*nbytes)) % (long(str(value)) & (2**(nbytes*8)-1))
+    return ("0x%%0%dX" % (2*nbytes)) % (int(str(value)) & (2**(nbytes*8)-1))
 
 def ListAttributes( compound ):
     attr_list = ""
@@ -146,7 +150,7 @@ temp.set_var( "list", version_list )
 
 temp.set_var( "contents", temp.parse( "templates/version_list.html") )
 
-f = file(ROOT_DIR + '/doc/version_list.html', 'w')
+f = io.open(ROOT_DIR + '/doc/version_list.html', 'wt', 1, 'utf-8')
 f.write( temp.parse( "templates/main.html" ) )
 f.close()
         
@@ -182,7 +186,7 @@ temp.set_var( "list", basic_list )
 
 temp.set_var( "contents", temp.parse( "templates/list.html") )
 
-f = file(ROOT_DIR + '/doc/basic_list.html', 'w')
+f = io.open(ROOT_DIR + '/doc/basic_list.html', 'wt', 1, 'utf-8')
 f.write( temp.parse( "templates/main.html" ) )
 f.close()
     
@@ -224,7 +228,7 @@ for n in basic_names:
     
     temp.set_var( "contents", temp.parse( "templates/basic.html") )
 
-    f = file(ROOT_DIR + '/doc/' + x.cname.replace('\\', '_') + '.html', 'w')
+    f = io.open(ROOT_DIR + '/doc/' + x.cname.replace('\\', '_') + '.html', 'wt', 1, 'utf-8')
     f.write( temp.parse( "templates/main.html" ) )
     f.close()
 
@@ -239,7 +243,7 @@ temp.set_var( "title", "Enum Data Types" )
 
 count = 0
 enum_list = ""
-for n, x in itertools.chain(enum_types.iteritems(), flag_types.iteritems()):
+for n, x in itertools.chain(enum_types.items(), flag_types.items()):
     if count % 2 == 0:
         temp.set_var( "row-class", "reg0" )
     else:
@@ -257,7 +261,7 @@ temp.set_var( "list", enum_list )
 
 temp.set_var( "contents", temp.parse( "templates/list.html") )
 
-f = file(ROOT_DIR + '/doc/enum_list.html', 'w')
+f = io.open(ROOT_DIR + '/doc/enum_list.html', 'wt', 1, 'utf-8')
 f.write( temp.parse( "templates/main.html" ) )
 f.close()
     
@@ -268,7 +272,7 @@ f.close()
 #
 
 count = 0
-for n, x in itertools.chain(enum_types.iteritems(), flag_types.iteritems()):
+for n, x in itertools.chain(enum_types.items(), flag_types.items()):
 
     temp = Template()
     temp.set_var( "title", x.name )
@@ -319,7 +323,7 @@ for n, x in itertools.chain(enum_types.iteritems(), flag_types.iteritems()):
     
     temp.set_var( "contents", temp.parse( "templates/enum.html") )
 
-    f = file(ROOT_DIR + '/doc/' + x.cname.replace("\\", "_") + '.html', 'w')
+    f = io.open(ROOT_DIR + '/doc/' + x.cname.replace("\\", "_") + '.html', 'wt', 1, 'utf-8')
     f.write( temp.parse( "templates/main.html" ) )
     f.close()
 
@@ -355,7 +359,7 @@ temp.set_var( "list", compound_list )
 
 temp.set_var( "contents", temp.parse( "templates/list.html") )
 
-f = file(ROOT_DIR + '/doc/compound_list.html', 'w')
+f = io.open(ROOT_DIR + '/doc/compound_list.html', 'wt', 1, 'utf-8')
 f.write( temp.parse( "templates/main.html" ) )
 f.close()
     
@@ -398,7 +402,7 @@ for n in compound_names:
     
     temp.set_var( "contents", temp.parse( "templates/compound.html") )
 
-    f = file(ROOT_DIR + '/doc/' + x.cname.replace("\\", "_") + '.html', 'w')
+    f = io.open(ROOT_DIR + '/doc/' + x.cname.replace("\\", "_") + '.html', 'wt', 1, 'utf-8')
     f.write( temp.parse( "templates/main.html" ) )
     f.close()
 
@@ -434,7 +438,7 @@ temp.set_var( "list", niobject_list )
 temp.set_var( "niobject-contents", temp.parse( "templates/list.html") )
 temp.set_var( "contents", temp.parse( "templates/niobject_nav.html") )
 
-f = file(ROOT_DIR + '/doc/niobject_list.html', 'w')
+f = io.open(ROOT_DIR + '/doc/niobject_list.html', 'wt', 1, 'utf-8')
 f.write( temp.parse( "templates/main.html" ) )
 f.close()
     
@@ -488,7 +492,7 @@ for n in block_names:
     
     temp.set_var( "contents", temp.parse( "templates/niobject.html") )
 
-    f = file(ROOT_DIR + '/doc/' + x.cname.replace("\\", "_") + '.html', 'w')
+    f = io.open(ROOT_DIR + '/doc/' + x.cname.replace("\\", "_") + '.html', 'wt', 1, 'utf-8')
     f.write( temp.parse( "templates/main.html" ) )
     f.close()
 
@@ -548,7 +552,7 @@ temp.set_var( "object-tree", object_tree )
 temp.set_var( "niobject-contents", temp.parse( "templates/hierarchy.html") )
 temp.set_var( "contents", temp.parse( "templates/niobject_nav.html") )
 
-f = file(ROOT_DIR + '/doc/index.html', 'w')
+f = io.open(ROOT_DIR + '/doc/index.html', 'wt', 1, 'utf-8')
 f.write( temp.parse( "templates/main.html" ) )
 f.close()
         
